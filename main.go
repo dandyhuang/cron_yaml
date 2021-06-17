@@ -44,32 +44,37 @@ func main() {
 	i := 0
 	c := cron.New()
 	for _, v := range C.CronCheck.Services {
-		cmd := exec.Command("sh", v.Path, " status ", v.Bin, *env, v.Conf)
+		//cmd:=exec.Command("sh", "-c", "cd ~ && ls -lrt;")
+		//out, _:= cmd.CombinedOutput()
+		//log.Printf("combined cntrol out:\n%s\n", string(out), v.Path)
+		checkBin := "cd " + v.Path + " && " + "sh control.sh status " + v.Bin + " " + *env + " ./conf/server.xml"
+		log.Println(checkBin)
+		cmd := exec.Command("sh", "-c", checkBin)
 		out, err := cmd.CombinedOutput()
 		if err != nil {
 			log.Fatalf("cmd.Run() sh failed with %s\n", err)
 		}
 		err = cmd.Wait() //等待执行完成
 		if nil != err {
-			log.Println("cmd wait",err)
+			log.Println("cmd wait", err)
 		}
 		log.Println("Exit Code", cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus())
 		log.Printf("combined cntrol out:\n%s\n", string(out))
 	}
-	spec := "*/1 * * * *"    // 每一分钟，
+	spec := "*/1 * * * *" // 每一分钟，
 	c.AddFunc(spec, func() {
 		i++
 		log.Println("cron running:", i)
 	})
 	c.Start()
-	select{}
+	select {}
 }
 
 func initConfigure() *viper.Viper {
 	v := viper.New()
-	v.SetConfigName(*env) // 设置文件名称（无后缀）
-	v.SetConfigType("yaml")   // 设置后缀名 {"1.6以后的版本可以不设置该后缀"}
-	v.AddConfigPath("./config/")  // 设置文件所在路径
+	v.SetConfigName(*env)        // 设置文件名称（无后缀）
+	v.SetConfigType("yaml")      // 设置后缀名 {"1.6以后的版本可以不设置该后缀"}
+	v.AddConfigPath("./config/") // 设置文件所在路径
 	// v.Set("verbose", true) // 设置默认参数
 
 	if err := v.ReadInConfig(); err != nil {
