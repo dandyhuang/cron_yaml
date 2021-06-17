@@ -8,14 +8,12 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"os/exec"
-	"syscall"
 )
 
-var config *viper.Viper
 var env = flag.String("env", "prd", "环境")
+var fPath = flag.String("path", "./config", "环境")
 
 type Rank4Config struct {
-	//Ecs []map[string]string this works for ecs with name
 	CronCheck struct {
 		Services []struct {
 			Spec string
@@ -23,36 +21,39 @@ type Rank4Config struct {
 			Path string
 			Conf string
 		}
-	} `mapstructure:"cron_check"`
-	//Services []map[string][]string
+	} `mapstructure:"rank4_cron_check"`
 }
 
-var C Rank4Config
+var CronIds []cron.EntryID
+var V *viper.Viper
 
 func main() {
 	flag.Parse()
-	config = initConfigure()
-	config.Unmarshal(&C)
-
+	c := cron.New()
+	V = initConfigure(c)
+	var cfg Rank4Config
+	V.Unmarshal(&cfg)
+	log.Println(V.AllSettings(), " rank4_cron:", V.GetStringMap("rank4_cron_check"))
 	r := gin.Default()
 	r.GET("/getConfig", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"config": config.AllSettings(),
+		c.YAML(200, gin.H{
+			"rank4_cron_check": V.GetStringMap("rank4_cron_check"),
 		})
 	})
 	go r.Run(":18666") // listen and serve on 0.0.0.0:8080
-	addCronCheck()
+
+	addCronCheck(c, cfg)
 	select {}
 }
 
-func addCronCheck() {
-	c := cron.New()
-	for _, v := range C.CronCheck.Services {
-		//cmd:=exec.Command("sh", "-c", "cd ~ && ls -lrt;")
-		//out, _:= cmd.CombinedOutput()
-		//log.Printf("combined cntrol out:\n%s\n", string(out), v.Path)
-		c.AddFunc(v.Spec, func() {
-			checkBin := "cd " + v.Path + " && " + "sh control.sh start " + v.Bin + " " + *env + " ./conf/server.xml"
+func addCronCheck(c *cron.Cron, cfg Rank4Config) {
+	CronIds = CronIds[:0]
+	for _, v := range cfg.CronCheck.Services {
+		spec := v.Spec
+		path := v.Path
+		bin := v.Bin
+		id, err := c.AddFunc(spec, func() {
+			checkBin := "cd " + path + " && " + "sh control.sh start " + bin + " " + *env + " ./conf/server.xml"
 			log.Println(checkBin)
 			cmd := exec.Command("sh", "-c", checkBin)
 			err := cmd.Start()
@@ -63,17 +64,20 @@ func addCronCheck() {
 			if nil != err {
 				log.Println("cmd wait", err)
 			}
-			log.Println("Exit Code", cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus())
 		})
+		if err != nil {
+			log.Println("cron add err", err)
+		}
+		CronIds = append(CronIds, id)
 	}
 	c.Start()
 }
 
-func initConfigure() *viper.Viper {
+func initConfigure(c *cron.Cron) *viper.Viper {
 	v := viper.New()
-	v.SetConfigName(*env)        // 设置文件名称（无后缀）
-	v.SetConfigType("yaml")      // 设置后缀名 {"1.6以后的版本可以不设置该后缀"}
-	v.AddConfigPath("./config/") // 设置文件所在路径
+	v.SetConfigName(*env)   // 设置文件名称（无后缀）
+	v.SetConfigType("yaml") // 设置后缀名 {"1.6以后的版本可以不设置该后缀"}
+	v.AddConfigPath(*fPath) // 设置文件所在路径
 	// v.Set("verbose", true) // 设置默认参数
 
 	if err := v.ReadInConfig(); err != nil {
@@ -88,6 +92,12 @@ func initConfigure() *viper.Viper {
 
 	v.OnConfigChange(func(e fsnotify.Event) {
 		log.Println("Config file changed:", e.Name)
+		for _, id := range CronIds {
+			c.Remove(id)
+		}
+		var cfg Rank4Config
+		V.Unmarshal(&cfg)
+		addCronCheck(c, cfg)
 	})
 	return v
 }
