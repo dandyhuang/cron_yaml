@@ -41,33 +41,32 @@ func main() {
 		})
 	})
 	go r.Run(":18666") // listen and serve on 0.0.0.0:8080
+	addCronCheck()
+	select {}
+}
 
-	i := 0
+func addCronCheck() {
 	c := cron.New()
 	for _, v := range C.CronCheck.Services {
 		//cmd:=exec.Command("sh", "-c", "cd ~ && ls -lrt;")
 		//out, _:= cmd.CombinedOutput()
 		//log.Printf("combined cntrol out:\n%s\n", string(out), v.Path)
-		checkBin := "cd " + v.Path + " && " + "sh control.sh status " + v.Bin + " " + *env + " ./conf/server.xml"
-		log.Println(checkBin)
-		cmd := exec.Command("sh", "-c", checkBin)
-		err := cmd.Start()
-		if err != nil {
-			log.Fatalf("cmd.Run() sh failed with %s\n", err)
-		}
-		err = cmd.Wait() //等待执行完成
-		if nil != err {
-			log.Println("cmd wait", err)
-		}
-		log.Println("Exit Code", cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus())
+		c.AddFunc(v.Spec, func() {
+			checkBin := "cd " + v.Path + " && " + "sh control.sh start " + v.Bin + " " + *env + " ./conf/server.xml"
+			log.Println(checkBin)
+			cmd := exec.Command("sh", "-c", checkBin)
+			err := cmd.Start()
+			if err != nil {
+				log.Fatalf("cmd.Run() sh failed with %s\n", err)
+			}
+			err = cmd.Wait() //等待执行完成
+			if nil != err {
+				log.Println("cmd wait", err)
+			}
+			log.Println("Exit Code", cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus())
+		})
 	}
-	spec := "*/1 * * * *" // 每一分钟，
-	c.AddFunc(spec, func() {
-		i++
-		log.Println("cron running:", i)
-	})
 	c.Start()
-	select {}
 }
 
 func initConfigure() *viper.Viper {
