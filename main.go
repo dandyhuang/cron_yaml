@@ -51,7 +51,7 @@ func main() {
 		checkBin := "cd " + v.Path + " && " + "sh control.sh status " + v.Bin + " " + *env + " ./conf/server.xml"
 		log.Println(checkBin)
 		cmd := exec.Command("sh", "-c", checkBin)
-		out, err := cmd.CombinedOutput()
+		err := cmd.Start()
 		if err != nil {
 			log.Fatalf("cmd.Run() sh failed with %s\n", err)
 		}
@@ -60,7 +60,6 @@ func main() {
 			log.Println("cmd wait", err)
 		}
 		log.Println("Exit Code", cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus())
-		log.Printf("combined cntrol out:\n%s\n", string(out))
 	}
 	spec := "*/1 * * * *" // 每一分钟，
 	c.AddFunc(spec, func() {
