@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"os/exec"
+	"syscall"
 )
 
 var config *viper.Viper
@@ -20,6 +21,7 @@ type Rank4Config struct {
 			Spec string
 			Bin  string
 			Path string
+			Conf string
 		}
 	} `mapstructure:"cron_check"`
 	//Services []map[string][]string
@@ -42,17 +44,16 @@ func main() {
 	i := 0
 	c := cron.New()
 	for _, v := range C.CronCheck.Services {
-		cmd := exec.Command("cd",v.Path)
+		cmd := exec.Command("sh", v.Path, " status ", v.Bin, *env, v.Conf)
 		out, err := cmd.CombinedOutput()
-		if err != nil {
-			log.Fatalf("cmd.Run() failed with %s\n", err)
-		}
-		log.Printf("combined out:\n%s\n", string(out))
-		cmd = exec.Command("sh", " control.sh  status ", v.Bin, *env, " ./conf/server.xml")
-		out, err = cmd.CombinedOutput()
 		if err != nil {
 			log.Fatalf("cmd.Run() sh failed with %s\n", err)
 		}
+		err = cmd.Wait() //等待执行完成
+		if nil != err {
+			log.Println("cmd wait",err)
+		}
+		log.Println("Exit Code", cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus())
 		log.Printf("combined cntrol out:\n%s\n", string(out))
 	}
 	spec := "*/1 * * * *"    // 每一分钟，

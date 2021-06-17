@@ -3,8 +3,10 @@ cron_check:
     - name: rank4_sched_815
       spec: '*/1 * * * *'
       bin: rank4_sched_815
-      path: /data/rank4-sched-815/approot/tools
+      path: /data/rank4-sched-815/approot/tools/control.sh
+      conf: /data/rank4-sched-805/approot/conf/server.xml
     - name: comm_801
       spec: '*/1 * * * *'
       bin: rank4_sched_801
-      path: /data/rank4-sched-801/approot/tools
+      path: /data/rank4-sched-801/approot/tools/control.sh
+      conf: /data/rank4-sched-801/approot/conf/server.xml
