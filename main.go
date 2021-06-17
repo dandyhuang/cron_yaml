@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/fsnotify/fsnotify"
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron/v3"
@@ -10,6 +11,7 @@ import (
 )
 
 var config *viper.Viper
+var env = flag.String("env", "prd", "环境")
 
 type Rank4Config struct {
 	//Ecs []map[string]string this works for ecs with name
@@ -46,7 +48,7 @@ func main() {
 			log.Fatalf("cmd.Run() failed with %s\n", err)
 		}
 		log.Printf("combined out:\n%s\n", string(out))
-		cmd = exec.Command("sh", " control.sh  monitor ", v.Bin, " pre ./conf/server.xml")
+		cmd = exec.Command("sh", " control.sh  status ", v.Bin, *env, " ./conf/server.xml")
 		out, err = cmd.CombinedOutput()
 		if err != nil {
 			log.Fatalf("cmd.Run() sh failed with %s\n", err)
@@ -64,7 +66,7 @@ func main() {
 
 func initConfigure() *viper.Viper {
 	v := viper.New()
-	v.SetConfigName("config") // 设置文件名称（无后缀）
+	v.SetConfigName(*env) // 设置文件名称（无后缀）
 	v.SetConfigType("yaml")   // 设置后缀名 {"1.6以后的版本可以不设置该后缀"}
 	v.AddConfigPath("./config/")  // 设置文件所在路径
 	// v.Set("verbose", true) // 设置默认参数
