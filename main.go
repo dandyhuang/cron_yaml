@@ -30,6 +30,7 @@ type Rank4Config struct {
 var C Rank4Config
 
 func main() {
+	flag.Parse()
 	config = initConfigure()
 	config.Unmarshal(&C)
 
