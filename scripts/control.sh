@@ -2,16 +2,20 @@
 
 # 参数要大于2个
 if [ $# -lt 1 ]; then
-    echo "Usage: ./bin/rank4_cron {start|stop}  envflag{pre|prd}"
+    echo "Usage: ./bin/rank4_cron  env{pre|prd}  {start|stop} "
     exit
 fi
 
 envflag="prd"
-config=envflag+".yaml"
+config="../config"
 
 echo "config:"${config}
 if [ $# -ge 2 ];then
     envflag=$2
+fi
+
+if [ $# -ge 4 ];then
+    config=$4
 fi
 
 ROOT_DIR=$(cd "$(dirname "$0")"; cd ../; pwd)
@@ -30,7 +34,7 @@ start()
         return 1
     fi
 
-    ${start_proc} -env ${envflag} -conf ${config} &
+    ${start_proc} -env ${envflag} -path ${config} &
 }
 
 stop()
@@ -51,7 +55,7 @@ stop()
 }
 
 # See how we were called.
-case "$1" in
+case "$3" in
     start)
         start
         ;;
