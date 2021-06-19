@@ -1,4 +1,4 @@
-module rank4_cron
+module bin/rank4_cron
 
 go 1.16
 

@@ -28,12 +28,21 @@ var CronIds []cron.EntryID
 var V *viper.Viper
 
 func main() {
+	arr := [2]int{1, 2}
+	res := []int{}
+	for i, v := range arr {
+		log.Printf("%v", &v, &i)
+		res = append(res, v)
+	}
+	log.Println("res:", res)
 	flag.Parse()
 	c := cron.New()
 	V = initConfigure(c)
-	var cfg Rank4Config
-	V.Unmarshal(&cfg)
-	log.Println(V.AllSettings(), " rank4_cron:", V.GetStringMap("rank4_cron_check"))
+	addCronCheck(c)
+	getConfigServices()
+	select {}
+}
+func getConfigServices() {
 	r := gin.Default()
 	r.GET("/getConfig", func(c *gin.Context) {
 		c.YAML(200, gin.H{
@@ -42,11 +51,11 @@ func main() {
 	})
 	go r.Run(":18666") // listen and serve on 0.0.0.0:8080
 
-	addCronCheck(c, cfg)
-	select {}
 }
 
-func addCronCheck(c *cron.Cron, cfg Rank4Config) {
+func addCronCheck(c *cron.Cron) {
+	var cfg Rank4Config
+	V.Unmarshal(&cfg)
 	CronIds = CronIds[:0]
 	for _, v := range cfg.CronCheck.Services {
 		spec := v.Spec
@@ -95,9 +104,8 @@ func initConfigure(c *cron.Cron) *viper.Viper {
 		for _, id := range CronIds {
 			c.Remove(id)
 		}
-		var cfg Rank4Config
-		V.Unmarshal(&cfg)
-		addCronCheck(c, cfg)
+
+		addCronCheck(c)
 	})
 	return v
 }
