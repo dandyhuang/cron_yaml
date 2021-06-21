@@ -28,13 +28,6 @@ var CronIds []cron.EntryID
 var V *viper.Viper
 
 func main() {
-	arr := [2]int{1, 2}
-	res := []int{}
-	for i, v := range arr {
-		log.Printf("%v", &v, &i)
-		res = append(res, v)
-	}
-	log.Println("res:", res)
 	flag.Parse()
 	c := cron.New()
 	V = initConfigure(c)
