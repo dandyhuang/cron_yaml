@@ -1,7 +1,67 @@
 rank4_cron_check:
   services:
-    - name: rank4_sched_831
-      spec: '@every 5s'
+    - name: check_801
+      spec: '@every 10s'
+      bin: rank4_sched_801
+      path: /data/rank4-sched-801/approot/tools
+    - name: check_805
+      spec: '@every 10s'
+      bin: rank4_sched_805
+      path: /data/rank4-sched-805/approot/tools
+    - name: check_809
+      spec: '@every 10s'
+      bin: rank4_sched_809
+      path: /data/rank4-sched-809/approot/tools
+    - name: check_810
+      spec: '@every 10s'
+      bin: rank4_sched_810
+      path: /data/rank4-sched-810/approot/tools
+    - name: check_811
+      spec: '@every 10s'
+      bin: rank4_sched_811
+      path: /data/rank4-sched-811/approot/tools
+    - name: check_812
+      spec: '@every 10s'
+      bin: rank4_sched_812
+      path: /data/rank4-sched-812/approot/tools
+    - name: check_814
+      spec: '@every 10s'
+      bin: rank4_sched_814
+      path: /data/rank4-sched-814/approot/tools
+    - name: check_815
+      spec: '@every 10s'
+      bin: rank4_sched_815
+      path: /data/rank4-sched-815/approot/tools
+    - name: check_819
+      spec: '@every 10s'
+      bin: rank4_sched_819
+      path: /data/rank4-sched-819/approot/tools
+    - name: check_817
+      spec: '@every 10s'
+      bin: rank4_sched_817
+      path: /data/rank4-sched-817/approot/toos
+    - name: check_818
+      spec: '@every 10s'
+      bin: rank4_sched_818
+      path: /data/rank4-sched-818/approot/tools
+    - name: check_820
+      spec: '@every 10s'
+      bin: rank4_sched_820
+      path: /data/rank4-sched-820/approot/tools
+    - name: check_821
+      spec: '@every 10s'
+      bin: rank4_sched_821
+      path: /data/rank4-sched-821/approot/tools
+    - name: check_823
+      spec: '@every 10s'
+      bin: rank4_sched_823
+      path: /data/rank4-sched-823/approot/tools
+    - name: check_827
+      spec: '@every 10s'
+      bin: rank4_sched_827
+      path: /data/rank4-sched-827/approot/tools
+    - name: check_831
+      spec: '@every 10s'
       bin: rank4_sched_831
       path: /data/rank4-sched-831/approot/tools
 
