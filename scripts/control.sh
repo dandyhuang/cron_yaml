@@ -33,7 +33,7 @@ start()
         echo "${start_proc} alread start"
         return 1
     fi
-
+    echo "${start_proc} -env ${envflag} -path ${config} &>/dev/null"
     ${start_proc} -env ${envflag} -path ${config} &
 }
 
